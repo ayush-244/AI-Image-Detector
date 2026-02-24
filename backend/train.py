@@ -8,31 +8,16 @@ from tensorflow.keras.models import Model
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.callbacks import ModelCheckpoint, EarlyStopping
 
-
-# ==============================
-# PATH SETUP
-# ==============================
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, "data")
 
 TRAIN_DIR = os.path.join(DATA_DIR, "train")
 TEST_DIR = os.path.join(DATA_DIR, "test")
 
-
-# ==============================
-# TRAINING PARAMETERS
-# ==============================
-
 IMG_SIZE = (224, 224)
 BATCH_SIZE = 16        # Safe for laptop
 EPOCHS = 8             # You selected 8
 LEARNING_RATE = 0.0001
-
-
-# ==============================
-# MAIN FUNCTION
-# ==============================
 
 def main():
 
