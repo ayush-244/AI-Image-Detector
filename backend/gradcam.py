@@ -9,19 +9,10 @@ import os
 # CONFIG
 # ==============================
 
-MODEL_PATH = "model.h5"
 IMG_SIZE = (224, 224)
 
-# For MobileNetV2 (last conv layer name)
+# Last convolution layer for MobileNetV2
 LAST_CONV_LAYER = "Conv_1"
-
-
-# ==============================
-# LOAD MODEL
-# ==============================
-
-model = tf.keras.models.load_model(MODEL_PATH)
-print("✅ Model loaded for Grad-CAM")
 
 
 # ==============================
@@ -45,7 +36,7 @@ def preprocess_image(img_path):
 
 
 # ==============================
-# GENERATE GRADCAM
+# GENERATE GRADCAM HEATMAP
 # ==============================
 
 def make_gradcam_heatmap(img_array, model):
@@ -76,13 +67,16 @@ def make_gradcam_heatmap(img_array, model):
 
 
     heatmap = tf.maximum(heatmap, 0)
-    heatmap /= tf.reduce_max(heatmap)
+
+    if tf.reduce_max(heatmap) != 0:
+        heatmap /= tf.reduce_max(heatmap)
+
 
     return heatmap.numpy()
 
 
 # ==============================
-# OVERLAY HEATMAP
+# OVERLAY HEATMAP ON IMAGE
 # ==============================
 
 def overlay_heatmap(heatmap, original_img, alpha=0.4):
@@ -111,7 +105,7 @@ def overlay_heatmap(heatmap, original_img, alpha=0.4):
 
 
 # ==============================
-# MAIN
+# MAIN (CLI TEST MODE)
 # ==============================
 
 if __name__ == "__main__":
@@ -121,8 +115,17 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    image_path = sys.argv[1]
+    MODEL_PATH = "model.h5"
 
+
+    print("Loading model...")
+
+    model = tf.keras.models.load_model(MODEL_PATH)
+
+    print("✅ Model loaded for Grad-CAM")
+
+
+    image_path = sys.argv[1]
 
     print("Processing:", image_path)
 
@@ -156,7 +159,10 @@ if __name__ == "__main__":
     # Save output
     output_name = "gradcam_output.jpg"
 
-    cv2.imwrite(output_name, cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
+    cv2.imwrite(
+        output_name,
+        cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
+    )
 
 
     print("✅ Heatmap saved as:", output_name)
