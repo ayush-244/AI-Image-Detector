@@ -11,7 +11,7 @@ const navItems = [
   { id: 'model', label: 'Model Info', icon: CpuChipIcon },
 ];
 
-export default function Sidebar({ active = 'dashboard', isOpen, onClose }) {
+export default function Sidebar({ active = 'dashboard', isOpen, onClose, onNavigate }) {
   return (
     <>
       {/* Desktop sidebar */}
@@ -34,6 +34,7 @@ export default function Sidebar({ active = 'dashboard', isOpen, onClose }) {
               <button
                 key={item.id}
                 type="button"
+                onClick={() => onNavigate && onNavigate(item.id)}
                 className={`w-full flex items-center px-3 py-2.5 text-sm rounded-xl transition-all duration-300
                   ${
                     isActive
@@ -84,6 +85,10 @@ export default function Sidebar({ active = 'dashboard', isOpen, onClose }) {
                 <button
                   key={item.id}
                   type="button"
+                  onClick={() => {
+                    if (onNavigate) onNavigate(item.id);
+                    onClose && onClose();
+                  }}
                   className={`w-full flex items-center px-3 py-2.5 text-sm rounded-xl transition-all duration-300
                     ${
                       isActive

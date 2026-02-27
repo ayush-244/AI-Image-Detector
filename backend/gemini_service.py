@@ -1,7 +1,19 @@
-from google import genai
-from google.genai import types
 import os
-from dotenv import load_dotenv
+
+try:
+    from dotenv import load_dotenv
+except Exception:
+    # If python-dotenv is not installed, we simply skip .env loading.
+    def load_dotenv(*_args, **_kwargs):  # type: ignore[override]
+        return None
+
+try:
+    from google import genai
+    from google.genai import types
+except Exception:
+    # If the optional Google Gemini SDK is not installed, degrade gracefully.
+    genai = None  # type: ignore[assignment]
+    types = None  # type: ignore[assignment]
 
 
 # ==============================
@@ -18,13 +30,15 @@ api_key = os.getenv("GOOGLE_API_KEY")
 # ==============================
 
 client = None
-if api_key:
+if api_key and genai is not None and types is not None:
     try:
         client = genai.Client(
             api_key=api_key,
             http_options=types.HttpOptions(api_version="v1beta"),
         )
     except Exception:
+        # Any failure here should not crash the backend; we will
+        # fall back to a static textual explanation instead.
         client = None
 
 

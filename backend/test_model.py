@@ -1,4 +1,5 @@
 import tensorflow as tf
 
 model = tf.keras.models.load_model("model.h5")
-print("✅ Model loaded successfully!")
+# Use ASCII-only output to avoid Windows console encoding issues.
+print("Model loaded successfully!")

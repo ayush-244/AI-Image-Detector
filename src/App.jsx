@@ -11,11 +11,15 @@ import { analyzeImage } from './api.js';
 export default function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isDark, setIsDark] = useState(true);
+  const [activePage, setActivePage] = useState('dashboard');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [result, setResult] = useState(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [originalImageUrl, setOriginalImageUrl] = useState('');
+
+  // Simple debug hook to confirm the React app is mounted and rendering.
+  console.log('AI Image Detector dashboard mounted');
 
   useEffect(() => {
     const root = document.documentElement;
@@ -25,6 +29,19 @@ export default function App() {
       root.classList.remove('dark');
     }
   }, [isDark]);
+
+  // Clean up object URLs to avoid memory leaks when a new image is uploaded
+  // or when the component is unmounted.
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      if (originalImageUrl) {
+        URL.revokeObjectURL(originalImageUrl);
+      }
+    };
+  }, [previewUrl, originalImageUrl]);
 
   const handleUpload = async (file) => {
     if (!file) return;
@@ -48,10 +65,12 @@ export default function App() {
       };
       setResult(normalized);
     } catch (e) {
-      setError(
+      const message =
+        e?.message ||
         e?.response?.data?.message ||
-          'Something went wrong while analyzing the image. Please try again.'
-      );
+        e?.response?.data?.error ||
+        'Something went wrong while analyzing the image. Please try again.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -62,9 +81,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-background text-white flex">
       <Sidebar
-        active="dashboard"
+        active={activePage}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        onNavigate={(id) => {
+          setActivePage(id);
+          setIsSidebarOpen(false);
+        }}
       />
 
       <div className="flex-1 flex flex-col min-h-screen">

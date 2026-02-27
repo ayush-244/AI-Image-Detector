@@ -25,11 +25,31 @@ def preprocess_image(img_path):
     return img, original
 
 
+def _resolve_last_conv_output(model):
+  """
+  Resolve the last convolutional layer used for Grad-CAM.
+  If LAST_CONV_LAYER is not present, fall back to the last Conv2D-like layer.
+  """
+  try:
+      return model.get_layer(LAST_CONV_LAYER).output
+  except Exception:
+      # Fallback: pick the last Conv2D layer in the model.
+      for layer in reversed(model.layers):
+          if isinstance(layer, tf.keras.layers.Conv2D):
+              return layer.output
+      raise ValueError(
+          f"Could not find LAST_CONV_LAYER '{LAST_CONV_LAYER}' "
+          "or any Conv2D layer in the model. Update gradcam.py to match the model architecture."
+      )
+
+
 def make_gradcam_heatmap(img_array, model):
+
+    conv_output_tensor = _resolve_last_conv_output(model)
 
     grad_model = tf.keras.models.Model(
         [model.inputs],
-        [model.get_layer(LAST_CONV_LAYER).output, model.output]
+        [conv_output_tensor, model.output]
     )
 
     with tf.GradientTape() as tape:

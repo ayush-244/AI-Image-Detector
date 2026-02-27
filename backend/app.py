@@ -1,7 +1,11 @@
 import os
 import uuid
+import logging
+import traceback
+
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from predict import predict_image
 from gradcam import make_gradcam_heatmap, overlay_heatmap, preprocess_image
@@ -13,8 +17,11 @@ import numpy as np
 import time
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "outputs"
@@ -27,15 +34,42 @@ model = None
 
 try:
     model = tf.keras.models.load_model(MODEL_PATH)
-    print("Model loaded in Flask app")
+    logger.info("Model loaded in Flask app from '%s'", MODEL_PATH)
 except FileNotFoundError:
-    # ASCII-only message to avoid Windows console encoding issues
-    print(
-        f"Model file '{MODEL_PATH}' not found. "
-        "The /analyze endpoint will return an error until the model is provided."
+    logger.warning(
+        "Model file '%s' not found. The /analyze endpoint will fall back to a heuristic "
+        "heatmap until the model is provided.",
+        MODEL_PATH,
     )
 except Exception as e:
-    print(f"Failed to load model from '{MODEL_PATH}': {e}")
+    logger.error("Failed to load model from '%s': %s", MODEL_PATH, e, exc_info=True)
+
+
+@app.errorhandler(Exception)
+def handle_unexpected_error(error):
+    """
+    Global JSON error handler so the frontend never receives HTML error pages.
+    Logs full traceback and returns a structured JSON error.
+    """
+    if isinstance(error, HTTPException):
+        response = {
+            "error": error.name,
+            "message": error.description,
+            "status_code": error.code,
+        }
+        logger.error("HTTP %s error: %s", error.code, error, exc_info=True)
+        return jsonify(response), error.code
+
+    logger.error("Unhandled exception in request: %s", error, exc_info=True)
+    return (
+        jsonify(
+            {
+                "error": "Internal Server Error",
+                "message": str(error),
+            }
+        ),
+        500,
+    )
 
 
 @app.route("/analyze", methods=["POST"])
@@ -46,7 +80,9 @@ def analyze():
 
     file = request.files["image"]
 
-    filename = str(uuid.uuid4()) + ".jpg"
+    # Always persist the originally uploaded image at full resolution.
+    # The model will see a resized version, but the saved file is untouched.
+    filename = str(uuid.uuid4()) + ".png"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     file.save(filepath)
 
@@ -72,7 +108,8 @@ def analyze():
 
         result = overlay_heatmap(norm_heatmap, original)
 
-        output_filename = str(uuid.uuid4()) + ".jpg"
+        # Save heatmap overlay as PNG to avoid additional JPEG compression loss.
+        output_filename = str(uuid.uuid4()) + ".png"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
         cv2.imwrite(output_path, cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
 
@@ -89,7 +126,9 @@ def analyze():
         # Full inference path using the trained model and Grad-CAM.
         img_array, original = preprocess_image(filepath)
 
-        pred = float(model.predict(img_array)[0][0])
+        # Robustly extract a scalar prediction regardless of output shape.
+        prediction_raw = model.predict(img_array)
+        pred = float(np.ravel(prediction_raw)[0])
 
         real_probability = pred
         fake_probability = 1.0 - pred
@@ -104,7 +143,8 @@ def analyze():
         heatmap = make_gradcam_heatmap(img_array, model)
         result = overlay_heatmap(heatmap, original)
 
-        output_filename = str(uuid.uuid4()) + ".jpg"
+        # Save heatmap overlay as PNG at the original image resolution.
+        output_filename = str(uuid.uuid4()) + ".png"
         output_path = os.path.join(OUTPUT_FOLDER, output_filename)
         cv2.imwrite(output_path, cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
 
@@ -145,4 +185,9 @@ def get_output(filename):
 # ==============================
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    try:
+        logger.info("Starting Flask server on http://127.0.0.1:5000")
+        app.run(host="127.0.0.1", port=5000, debug=True)
+    except Exception:
+        # If the server crashes on startup, print full traceback to the console.
+        traceback.print_exc()

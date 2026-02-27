@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Ensure a visible background/text color even if Tailwind fails to load.
+   Tailwind's utilities (bg-background, text-white) will override this when active. */
 body {
+  background-color: #020617;
+  color: #f9fafb;
   @apply bg-background text-white antialiased;
 }
 

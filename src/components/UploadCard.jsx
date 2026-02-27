@@ -101,11 +101,12 @@ export default function UploadCard({ onUpload, isLoading, error, onClearError, p
           </div>
 
           {previewUrl && (
-            <div className="w-32 h-32 sm:w-36 sm:h-36 rounded-xl overflow-hidden border border-white/5 bg-black/40 flex items-center justify-center">
+            <div className="w-full max-w-md sm:max-w-lg aspect-video rounded-xl overflow-hidden border border-white/5 bg-black/40 flex items-center justify-center">
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{ imageRendering: 'auto' }}
               />
             </div>
           )}
