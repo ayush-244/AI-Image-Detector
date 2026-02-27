@@ -98,7 +98,8 @@ if __name__ == "__main__":
         sys.exit(1)
 
 
-    MODEL_PATH = "model.h5"
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
 
 
     print("Loading model...")

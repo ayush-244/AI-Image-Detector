@@ -9,7 +9,8 @@ import os
 # LOAD MODEL
 # ==============================
 
-MODEL_PATH = "model.h5"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
 
 # Lazily and defensively load the model so that the backend
 # can still start even if the file is missing.
