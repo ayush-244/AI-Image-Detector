@@ -4,20 +4,10 @@ import cv2
 import sys
 import os
 
-
-# ==============================
-# CONFIG
-# ==============================
-
 IMG_SIZE = (224, 224)
 
 # Last convolution layer for MobileNetV2
 LAST_CONV_LAYER = "Conv_1"
-
-
-# ==============================
-# PREPROCESS IMAGE
-# ==============================
 
 def preprocess_image(img_path):
 
@@ -34,10 +24,6 @@ def preprocess_image(img_path):
 
     return img, original
 
-
-# ==============================
-# GENERATE GRADCAM HEATMAP
-# ==============================
 
 def make_gradcam_heatmap(img_array, model):
 
@@ -104,9 +90,6 @@ def overlay_heatmap(heatmap, original_img, alpha=0.4):
     return overlay
 
 
-# ==============================
-# MAIN (CLI TEST MODE)
-# ==============================
 
 if __name__ == "__main__":
 

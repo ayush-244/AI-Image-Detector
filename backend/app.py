@@ -9,6 +9,7 @@ from flask_cors import CORS
 
 from predict import predict_image
 from gradcam import make_gradcam_heatmap, overlay_heatmap, preprocess_image
+from gemini_service import generate_explanation
 
 
 # ==============================
@@ -87,6 +88,24 @@ def analyze():
         "heatmap_image": output_name
     })
 
+@app.route("/chat", methods=["POST"])
+def chat():
+
+    data = request.json
+
+    user_question = data.get("question")
+    label = data.get("label")
+    confidence = data.get("confidence")
+    activation = data.get("activation")
+
+    answer = generate_explanation(
+        user_question,
+        label,
+        confidence,
+        activation
+    )
+
+    return jsonify({"response": answer})
 
 @app.route("/output/<filename>")
 def get_output(filename):
