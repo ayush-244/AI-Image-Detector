@@ -1,29 +1,27 @@
-import google.generativeai as genai
+from google import genai
 import os
 
-
-# Set your Gemini API key as environment variable first
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-model = genai.GenerativeModel("gemini-1.5-flash")
-
+# Use GOOGLE_API_KEY (not GEMINI_API_KEY)
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
 def generate_explanation(user_question, label, confidence, activation_strength):
 
-    system_context = f"""
-    You are an AI forensic assistant.
+    context = f"""
+You are an AI forensic assistant.
 
-    Model Prediction: {label}
-    Confidence: {confidence}%
-    Activation Strength: {activation_strength}
+The CNN model has already classified the image.
 
-    The CNN model has already classified the image.
-    You must NOT override the classification.
-    You must only explain and interpret.
-    """
+Prediction: {label}
+Confidence: {confidence}%
+Activation Strength: {activation_strength}
 
-    prompt = system_context + "\nUser Question: " + user_question
+You must NOT override the classification.
+Only explain the reasoning behind the result in a professional manner.
+"""
 
-    response = model.generate_content(prompt)
+    response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents=context + "\nUser Question: " + user_question,
+    )
 
     return response.text
