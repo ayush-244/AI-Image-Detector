@@ -11,9 +11,25 @@ import os
 
 MODEL_PATH = "model.h5"
 
-model = tf.keras.models.load_model(MODEL_PATH)
+# Lazily and defensively load the model so that the backend
+# can still start even if the file is missing.
+model = None
 
-print("✅ Model loaded for prediction")
+def _ensure_model_loaded():
+    """Load the Keras model once, if available."""
+    global model
+    if model is not None:
+        return
+
+    if not os.path.exists(MODEL_PATH):
+        # Defer failure to prediction time with a clear error message.
+        raise FileNotFoundError(
+            f"Model file '{MODEL_PATH}' was not found. "
+            "Place the trained model next to predict.py and restart the backend."
+        )
+
+    model = tf.keras.models.load_model(MODEL_PATH)
+    print("✅ Model loaded for prediction")
 
 
 # ==============================
@@ -46,6 +62,8 @@ def preprocess_image(img_path):
 # ==============================
 
 def predict_image(img_path):
+
+    _ensure_model_loaded()
 
     img = preprocess_image(img_path)
 

@@ -1,10 +1,41 @@
 from google import genai
+from google.genai import types
 import os
+from dotenv import load_dotenv
 
-# Use GOOGLE_API_KEY (not GEMINI_API_KEY)
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+# ==============================
+# LOAD ENV VARIABLES
+# ==============================
+
+load_dotenv()  # Load variables from .env file
+
+api_key = os.getenv("GOOGLE_API_KEY")
+
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY not found. Check your .env file.")
+
+
+# ==============================
+# INITIALIZE GEMINI CLIENT
+# ==============================
+
+client = genai.Client(
+    api_key=api_key,
+    http_options=types.HttpOptions(api_version="v1beta"),
+)
+
+
+# ==============================
+# GENERATE EXPLANATION FUNCTION
+# ==============================
 
 def generate_explanation(user_question, label, confidence, activation_strength):
+    """
+    Uses Gemini to explain the CNN prediction.
+    Gemini does NOT override classification.
+    It only explains the result.
+    """
 
     context = f"""
 You are an AI forensic assistant.
@@ -16,12 +47,17 @@ Confidence: {confidence}%
 Activation Strength: {activation_strength}
 
 You must NOT override the classification.
-Only explain the reasoning behind the result in a professional manner.
+Only explain what the result means in a professional and technical manner.
+Keep the explanation structured and concise.
 """
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=context + "\nUser Question: " + user_question,
-    )
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=context + "\n\nUser Question: " + user_question,
+        )
 
-    return response.text
+        return response.text
+
+    except Exception as e:
+        return f"Gemini API Error: {str(e)}"
