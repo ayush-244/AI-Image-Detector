@@ -5,4 +5,5 @@ uploads/
 outputs/
 .vscode/
 data/
-.env/
+.env
+backend/.env
