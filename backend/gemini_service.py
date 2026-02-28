@@ -20,7 +20,11 @@ except Exception:
 # LOAD ENV VARIABLES
 # ==============================
 
-load_dotenv()  # Load variables from .env file
+# Always load the .env file that lives next to this module and
+# override any machine / OS-level GOOGLE_API_KEY so the key you
+# put in backend/.env is the single source of truth.
+env_path = os.path.join(os.path.dirname(__file__), ".env")
+load_dotenv(dotenv_path=env_path, override=True)
 
 api_key = os.getenv("GOOGLE_API_KEY")
 
