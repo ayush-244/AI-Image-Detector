@@ -6,5 +6,9 @@ export default defineConfig({
   server: {
     host: '127.0.0.1',
     port: 5173,
+    proxy: {
+      '/analyze': { target: 'http://127.0.0.1:5000', changeOrigin: true },
+      '/outputs': { target: 'http://127.0.0.1:5000', changeOrigin: true },
+    },
   },
 });

@@ -1,8 +1,10 @@
 import axios from 'axios';
 
+// In dev, Vite proxies /analyze and /outputs to the backend
+const baseURL = import.meta.env.DEV ? '' : 'http://127.0.0.1:5000';
 const apiClient = axios.create({
-  baseURL: 'http://127.0.0.1:5000',
-  timeout: 20000,
+  baseURL,
+  timeout: 60000,
 });
 
 export async function analyzeImage(file) {
@@ -29,10 +31,8 @@ export async function analyzeImage(file) {
     }
 
     if (error.request) {
-      // Request was sent but no response received (e.g., backend down / connection refused).
       throw new Error(
-        'Cannot reach the analysis backend at http://127.0.0.1:5000. ' +
-          'Make sure the Flask server is running.'
+        'Cannot reach the analysis backend. Make sure the Flask server is running (python app.py in backend/).'
       );
     }
 

@@ -18,9 +18,6 @@ export default function App() {
   const [previewUrl, setPreviewUrl] = useState('');
   const [originalImageUrl, setOriginalImageUrl] = useState('');
 
-  // Simple debug hook to confirm the React app is mounted and rendering.
-  console.log('AI Image Detector dashboard mounted');
-
   useEffect(() => {
     const root = document.documentElement;
     if (isDark) {
@@ -43,24 +40,34 @@ export default function App() {
     };
   }, [previewUrl, originalImageUrl]);
 
-  const handleUpload = async (file) => {
-    if (!file) return;
+  const handleUpload = async (file, validationError) => {
     setError('');
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+    if (!file) return;
     setIsLoading(true);
     setResult(null);
 
     const localUrl = URL.createObjectURL(file);
-    setOriginalImageUrl(localUrl);
+    setOriginalImageUrl((previous) => {
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
+      return localUrl;
+    });
 
     try {
       const data = await analyzeImage(file);
+      const base = import.meta.env.DEV ? window.location.origin : 'http://127.0.0.1:5000';
       const normalized = {
         ...data,
         heatmap_url:
           data?.heatmap_url && typeof data.heatmap_url === 'string'
             ? data.heatmap_url.startsWith('http')
               ? data.heatmap_url
-              : `http://127.0.0.1:5000${data.heatmap_url}`
+              : base + (data.heatmap_url.startsWith('/') ? '' : '/') + data.heatmap_url
             : null,
       };
       setResult(normalized);

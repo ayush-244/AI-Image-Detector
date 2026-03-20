@@ -8,13 +8,17 @@ export default function UploadCard({ onUpload, isLoading, error, onClearError, p
       if (!files || files.length === 0) return;
       const file = files[0];
       if (!file.type.startsWith('image/')) {
-        if (onClearError) {
-          onClearError();
-        }
-        // simple error surfaced via onUpload returning rejection can be handled in parent
+        if (onClearError) onClearError();
+        if (onUpload) onUpload(null, 'Please select an image file (JPG, PNG, or WEBP).');
+        return;
       }
       const url = URL.createObjectURL(file);
-      setPreviewUrl(url);
+      setPreviewUrl((previous) => {
+        if (previous) {
+          URL.revokeObjectURL(previous);
+        }
+        return url;
+      });
       onUpload(file);
     },
     [onUpload, onClearError, setPreviewUrl]

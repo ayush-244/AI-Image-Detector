@@ -2,12 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Ensure a visible background/text color even if Tailwind fails to load.
-   Tailwind's utilities (bg-background, text-white) will override this when active. */
+/* Keep custom rules after Tailwind directives. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 body {
-  background-color: #020617;
+  margin: 0;
+  background-color: #0f172a;
   color: #f9fafb;
-  @apply bg-background text-white antialiased;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .scrollbar-thin {

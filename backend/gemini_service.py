@@ -83,8 +83,14 @@ Keep the explanation structured and concise.
             model="gemini-2.5-flash",
             contents=context + "\n\nUser Question: " + user_question,
         )
-
-        return response.text
+        # Handle different response shapes across SDK versions
+        if hasattr(response, "text") and response.text:
+            return response.text
+        if hasattr(response, "candidates") and response.candidates:
+            parts = response.candidates[0].content.parts
+            if parts:
+                return getattr(parts[0], "text", str(parts[0]))
+        return f"Predicted label: {label} with {confidence}% confidence."
 
     except Exception as e:
         return f"Gemini API Error: {str(e)}"

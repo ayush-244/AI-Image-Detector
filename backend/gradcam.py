@@ -98,6 +98,8 @@ def overlay_heatmap(heatmap, original_img, alpha=0.4):
         heatmap,
         cv2.COLORMAP_JET
     )
+    # applyColorMap returns BGR; original_img is RGB — convert for correct blending
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
     overlay = cv2.addWeighted(
         original_img,
