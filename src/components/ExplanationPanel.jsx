@@ -1,8 +1,14 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 export default function ExplanationPanel({ explanation, hasResult }) {
   return (
-    <section className="bg-card rounded-2xl p-6 shadow-md border border-white/5 flex flex-col">
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.25 }}
+      className="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg shadow-cyan-500/20 border border-white/10 flex flex-col"
+    >
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className="text-lg font-semibold">AI Technical Explanation</h2>
@@ -21,7 +27,7 @@ export default function ExplanationPanel({ explanation, hasResult }) {
             signatures most strongly contributed to the REAL vs FAKE verdict.
           </p>
         ) : explanation ? (
-          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">
+          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line font-light tracking-wide">
             {explanation}
           </p>
         ) : (
@@ -30,7 +36,6 @@ export default function ExplanationPanel({ explanation, hasResult }) {
           </p>
         )}
       </div>
-    </section>
+    </motion.section>
   );
 }
-

@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
 function Badge({ label }) {
   const isReal = label === 'REAL';
@@ -23,14 +24,19 @@ function Badge({ label }) {
 function ProgressBar({ value, colorClass }) {
   const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
   return (
-    <div className="w-full h-2.5 rounded-full bg-slate-800 overflow-hidden">
-      <div
-        className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
-        style={{ width: `${safeValue}%` }}
+    <div className="w-full h-2.5 rounded-full bg-slate-800/80 overflow-hidden">
+      <motion.div
+        initial={{ width: 0 }}
+        animate={{ width: `${safeValue}%` }}
+        transition={{ duration: 0.6, ease: 'easeOut' }}
+        className={`h-full rounded-full ${colorClass}`}
       />
     </div>
   );
 }
+
+const cardStyle =
+  'bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg shadow-cyan-500/20 border border-white/10 hover:border-cyan-500/20 transition-colors';
 
 export default function StatsCards({ result }) {
   const {
@@ -49,8 +55,12 @@ export default function StatsCards({ result }) {
 
   return (
     <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {/* Prediction card */}
-      <div className="bg-card rounded-2xl p-6 shadow-md border border-white/5 flex flex-col justify-between">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className={`${cardStyle} flex flex-col justify-between`}
+      >
         <div>
           <p className="text-sm text-gray-400">Prediction</p>
           <div className="mt-3 flex items-center justify-between">
@@ -70,10 +80,14 @@ export default function StatsCards({ result }) {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Confidence breakdown */}
-      <div className="bg-card rounded-2xl p-6 shadow-md border border-white/5">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className={cardStyle}
+      >
         <p className="text-sm text-gray-400">Confidence breakdown</p>
         <div className="mt-4 space-y-4">
           <div>
@@ -99,10 +113,14 @@ export default function StatsCards({ result }) {
           Probabilities are normalized across the classifier&apos;s internal logits to
           provide a calibrated confidence profile.
         </p>
-      </div>
+      </motion.div>
 
-      {/* Inference stats */}
-      <div className="bg-card rounded-2xl p-6 shadow-md border border-white/5">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className={cardStyle}
+      >
         <p className="text-sm text-gray-400">Inference stats</p>
         <dl className="mt-4 space-y-3">
           <div className="flex items-center justify-between">
@@ -130,8 +148,7 @@ export default function StatsCards({ result }) {
             </div>
           </div>
         </dl>
-      </div>
+      </motion.div>
     </section>
   );
 }
-

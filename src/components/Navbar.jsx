@@ -1,60 +1,67 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 
-export default function Navbar({ onToggleSidebar, isDark, onToggleTheme }) {
+export default function Navbar({ onScrollTo }) {
   return (
-    <header className="h-16 border-b border-white/5 bg-[#020617]/70 backdrop-blur-lg flex items-center px-4 sm:px-6 justify-between">
-      <div className="flex items-center space-x-3">
-        <button
-          type="button"
-          className="md:hidden inline-flex items-center justify-center h-9 w-9 rounded-xl bg-white/5 text-gray-300 hover:bg-white/10 transition-all duration-300"
-          onClick={onToggleSidebar}
-        >
-          <span className="sr-only">Toggle sidebar</span>
-          <span className="block w-4 space-y-1.5">
-            <span className="block h-0.5 w-full bg-gray-300 rounded-full" />
-            <span className="block h-0.5 w-full bg-gray-300 rounded-full" />
-            <span className="block h-0.5 w-3/4 bg-gray-300 rounded-full" />
-          </span>
-        </button>
-        <div>
-          <h1 className="text-lg sm:text-xl font-semibold tracking-tight">
-            AI Image Detector
-          </h1>
-          <p className="text-xs text-gray-500">
-            SaaS dashboard for image authenticity analysis
-          </p>
+    <header className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 py-4">
+      <nav className="max-w-6xl mx-auto flex items-center justify-between gap-4">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-9 w-9 shrink-0 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-400/30">
+            <span className="text-sm font-bold text-cyan-400">N</span>
+          </div>
+          <span className="text-lg font-bold tracking-tight truncate">NextWare AI</span>
         </div>
-      </div>
 
-      <div className="flex items-center space-x-4">
-        <button
+        <div className="hidden sm:flex flex-1 justify-center max-w-xl">
+          <div className="flex items-center gap-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-2 py-1.5">
+            <button
+              type="button"
+              onClick={() => onScrollTo('hero')}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors rounded-full hover:bg-white/10"
+            >
+              Home
+            </button>
+            <button
+              type="button"
+              onClick={() => onScrollTo('upload')}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors rounded-full hover:bg-white/10"
+            >
+              Analyze
+            </button>
+            <button
+              type="button"
+              onClick={() => onScrollTo('results')}
+              className="px-4 py-2 text-sm text-gray-300 hover:text-white transition-colors rounded-full hover:bg-white/10"
+            >
+              Results
+            </button>
+          </div>
+        </div>
+
+        <motion.button
           type="button"
-          onClick={onToggleTheme}
-          className="h-9 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-medium text-gray-200 flex items-center space-x-2 transition-all duration-300"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => onScrollTo('upload')}
+          className="shrink-0 px-5 py-2.5 rounded-full bg-gradient-to-r from-cyan-400 to-teal-300 text-black text-sm font-semibold shadow-lg shadow-cyan-500/20"
         >
-          <span
-            className={`inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] ${
-              isDark ? 'bg-slate-900 text-yellow-300' : 'bg-slate-100 text-slate-900'
-            }`}
-          >
-            {isDark ? '☾' : '☀'}
-          </span>
-          <span className="hidden sm:inline">
-            {isDark ? 'Dark mode' : 'Light mode'}
-          </span>
-        </button>
-
-        <div className="flex items-center space-x-3">
-          <div className="hidden sm:flex flex-col items-end">
-            <span className="text-xs font-medium">Ayush</span>
-            <span className="text-[11px] text-gray-500">AI Image Detector</span>
-          </div>
-          <div className="h-9 w-9 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-500 flex items-center justify-center text-xs font-semibold shadow-md shadow-blue-500/30">
-            AI
-          </div>
+          Start Now
+        </motion.button>
+      </nav>
+      <div className="sm:hidden max-w-6xl mx-auto mt-3 flex justify-center">
+        <div className="flex items-center gap-1 bg-white/5 backdrop-blur-md border border-white/10 rounded-full px-2 py-1">
+          {['hero', 'upload', 'results'].map((id, i) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onScrollTo(id)}
+              className="px-3 py-1.5 text-xs text-gray-300 rounded-full hover:bg-white/10"
+            >
+              {['Home', 'Analyze', 'Results'][i]}
+            </button>
+          ))}
         </div>
       </div>
     </header>
   );
 }
-

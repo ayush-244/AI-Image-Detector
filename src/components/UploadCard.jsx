@@ -1,6 +1,16 @@
 import React, { useCallback, useState } from 'react';
+import { motion } from 'framer-motion';
 
-export default function UploadCard({ onUpload, isLoading, error, onClearError, previewUrl, setPreviewUrl }) {
+export default function UploadCard({
+  isLoading,
+  error,
+  onClearError,
+  previewUrl,
+  setPreviewUrl,
+  selectedFile,
+  onFileSelected,
+  onAnalyzeClick,
+}) {
   const [isDragging, setIsDragging] = useState(false);
 
   const handleFiles = useCallback(
@@ -9,7 +19,7 @@ export default function UploadCard({ onUpload, isLoading, error, onClearError, p
       const file = files[0];
       if (!file.type.startsWith('image/')) {
         if (onClearError) onClearError();
-        if (onUpload) onUpload(null, 'Please select an image file (JPG, PNG, or WEBP).');
+        if (onFileSelected) onFileSelected(null, 'Please select an image file (JPG, PNG, or WEBP).');
         return;
       }
       const url = URL.createObjectURL(file);
@@ -19,9 +29,9 @@ export default function UploadCard({ onUpload, isLoading, error, onClearError, p
         }
         return url;
       });
-      onUpload(file);
+      if (onFileSelected) onFileSelected(file);
     },
-    [onUpload, onClearError, setPreviewUrl]
+    [onFileSelected, onClearError, setPreviewUrl]
   );
 
   const onDrop = (e) => {
@@ -45,85 +55,119 @@ export default function UploadCard({ onUpload, isLoading, error, onClearError, p
   const onFileChange = (e) => {
     if (isLoading) return;
     handleFiles(e.target.files);
+    e.target.value = '';
+  };
+
+  const openFilePicker = () => {
+    document.getElementById('image-input-hidden-spa')?.click();
   };
 
   return (
-    <section className="bg-card rounded-2xl p-6 shadow-md border border-white/5">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold">Upload image</h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Drag &amp; drop an image or browse from your device to analyze authenticity.
-          </p>
-        </div>
-      </div>
+    <div className="relative w-full max-w-4xl mx-auto">
+      <div className="absolute -inset-4 bg-cyan-400/20 blur-3xl opacity-20 rounded-[2rem] pointer-events-none" />
+      <div className="absolute -inset-2 bg-cyan-500/10 blur-xl opacity-10 rounded-3xl pointer-events-none" />
 
-      <div
-        className={`mt-4 rounded-xl border-2 border-dashed px-4 py-6 sm:px-6 sm:py-8 transition-all duration-300 cursor-pointer
-          ${
-            isDragging
-              ? 'border-blue-500 bg-blue-500/5'
-              : 'border-gray-700 hover:border-gray-500 bg-[#020617]/40'
-          }`}
-        onDrop={onDrop}
-        onDragOver={onDragOver}
-        onDragLeave={onDragLeave}
-        onClick={() => document.getElementById('image-input-hidden')?.click()}
+      <motion.section
+        initial={{ opacity: 0, y: 16 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5 }}
+        className="relative bg-white/5 backdrop-blur-md rounded-2xl p-8 sm:p-10 shadow-lg shadow-cyan-500/20 border border-white/10"
       >
-        <input
-          id="image-input-hidden"
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={onFileChange}
-        />
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-2">
+          Upload Image for Analysis
+        </h2>
+        <p className="text-gray-400 text-center text-sm sm:text-base mb-8">
+          Drop an image below or browse. Then run analysis with one click.
+        </p>
 
-        <div className="flex flex-col sm:flex-row items-center sm:items-start sm:space-x-6 space-y-4 sm:space-y-0">
-          <div className="flex-1 text-center sm:text-left">
-            <p className="text-sm text-gray-300">
-              <span className="font-semibold text-gray-100">Drop image here</span> or{' '}
-              <span className="text-blue-400">browse</span>
-            </p>
-            <p className="text-xs text-gray-500 mt-1">
-              Supported formats: JPG, PNG, WEBP. Max size depends on backend limits.
-            </p>
+        <div
+          className={`rounded-xl border-2 border-dashed px-6 py-10 sm:py-14 transition-all duration-300
+            ${isDragging ? 'border-cyan-400 bg-cyan-500/10' : 'border-white/20 hover:border-white/30 bg-black/20'}
+            ${isLoading ? 'pointer-events-none opacity-80' : 'cursor-pointer'}`}
+          onDrop={onDrop}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onClick={isLoading ? undefined : openFilePicker}
+        >
+          <input
+            id="image-input-hidden-spa"
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={onFileChange}
+          />
 
-            <button
-              type="button"
-              disabled={isLoading}
-              className="mt-4 inline-flex items-center px-4 py-2.5 rounded-xl bg-blue-500 text-sm font-medium text-white shadow-sm shadow-blue-500/30 hover:bg-blue-400 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300"
-              onClick={(e) => {
-                e.stopPropagation();
-                document.getElementById('image-input-hidden')?.click();
-              }}
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-8">
+              <div className="h-12 w-12 rounded-full border-2 border-cyan-400/30 border-t-cyan-400 animate-spin shadow-[0_0_24px_rgba(34,211,238,0.4)]" />
+              <p className="mt-4 text-sm text-gray-400">Analyzing image…</p>
+            </div>
+          ) : (
+            <div className="text-center">
+              <p className="text-gray-300 mb-2">
+                <span className="font-semibold text-white">Drag &amp; drop</span> or{' '}
+                <span className="text-cyan-400">browse</span>
+              </p>
+              <p className="text-xs text-gray-500 mb-6">JPG, PNG, WEBP</p>
+
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    openFilePicker();
+                  }}
+                  className="px-6 py-3 rounded-full bg-white/10 hover:bg-white/20 text-white font-semibold text-sm border border-white/10"
+                >
+                  Choose file
+                </motion.button>
+                <motion.button
+                  type="button"
+                  whileHover={{ scale: selectedFile ? 1.05 : 1 }}
+                  whileTap={{ scale: 0.95 }}
+                  disabled={!selectedFile || isLoading}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onAnalyzeClick) onAnalyzeClick();
+                  }}
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-300 text-black font-semibold text-sm shadow-lg shadow-cyan-500/30 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Analyze
+                </motion.button>
+              </div>
+            </div>
+          )}
+
+          {!isLoading && !previewUrl && (
+            <p className="text-center text-xs text-gray-500 mt-6">
+              Upload an image to begin analysis
+            </p>
+          )}
+
+          {previewUrl && !isLoading && (
+            <div
+              className="mt-8 w-full max-w-2xl mx-auto aspect-video rounded-xl overflow-hidden border border-white/10 bg-black/40"
+              onClick={(e) => e.stopPropagation()}
             >
-              {isLoading && (
-                <span className="mr-2 h-4 w-4 border-2 border-transparent border-t-white border-r-white rounded-full animate-spin" />
-              )}
-              {isLoading ? 'Analyzing...' : 'Upload & analyze'}
-            </button>
-          </div>
-
-          {previewUrl && (
-            <div className="w-full max-w-md sm:max-w-lg aspect-video rounded-xl overflow-hidden border border-white/5 bg-black/40 flex items-center justify-center">
               <img
                 src={previewUrl}
                 alt="Preview"
                 className="w-full h-full object-contain"
-                style={{ imageRendering: 'auto' }}
               />
             </div>
           )}
         </div>
 
         {error && (
-          <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/40 px-3 py-2.5 flex items-start">
+          <div className="mt-4 rounded-xl bg-red-500/10 border border-red-500/40 px-4 py-3 flex items-start">
             <span className="text-xs font-semibold text-red-400 mt-0.5">Error</span>
-            <p className="ml-3 text-xs text-red-100">{error}</p>
+            <p className="ml-3 text-sm text-red-100">{error}</p>
           </div>
         )}
-      </div>
-    </section>
+      </motion.section>
+    </div>
   );
 }
-
