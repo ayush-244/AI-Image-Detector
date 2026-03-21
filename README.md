@@ -1,62 +1,103 @@
-# AI Image Detector Dashboard
+# NextWare AI Image Detector
 
-A full-stack application for detecting AI-generated vs real images using a CNN model with Grad-CAM visualization and Gemini-powered explanations.
+A full-stack AI image authenticity platform with a **single-page SaaS UI** on top of a Flask/TensorFlow backend.
+
+Flow:
+**Hero -> Upload -> Analyze -> Results -> Heatmap -> Explanation**
+
+## Tech Stack
+
+- **Frontend:** React 18, Vite 6, Tailwind CSS 3, Framer Motion, Recharts, Axios
+- **Backend:** Flask, TensorFlow, OpenCV, NumPy
+- **Explainability:** Grad-CAM + optional Gemini explanation service
 
 ## Project Structure
 
-```
+```text
 AI-Image-Detector/
-├── backend/           # Flask API (Python)
-│   ├── app.py         # Main server
-│   ├── predict.py     # Model inference
-│   ├── gradcam.py     # Grad-CAM heatmap
-│   ├── gemini_service.py  # AI explanations
+├── backend/
+│   ├── app.py
+│   ├── predict.py
+│   ├── gradcam.py
+│   ├── gemini_service.py
 │   ├── requirements.txt
-│   └── model.h5       # Trained model (place here)
-├── src/               # React frontend (Vite)
+│   └── model.h5
+├── src/
 │   ├── App.jsx
 │   ├── api.js
+│   ├── main.jsx
+│   ├── index.css
 │   └── components/
+│       ├── Navbar.jsx
+│       ├── UploadCard.jsx
+│       ├── StatsCards.jsx
+│       ├── ConfidenceGraph.jsx
+│       ├── HeatmapViewer.jsx
+│       └── ExplanationPanel.jsx
 ├── index.html
-├── package.json
-└── vite.config.js
+├── tailwind.config.js
+├── postcss.config.js
+├── vite.config.js
+└── package.json
 ```
 
-## Setup & Run
+## Setup
 
-### 1. Frontend
+### Frontend dependencies
 
 ```bash
 npm install
-npm run dev
 ```
 
-Frontend runs at http://127.0.0.1:5173
-
-### 2. Backend
+### Backend dependencies
 
 ```bash
 cd backend
 pip install -r requirements.txt
+cd ..
+```
+
+## Run
+
+### 1) Start backend
+
+```bash
+cd backend
 python app.py
 ```
 
-Backend runs at http://127.0.0.1:5000
+Backend URL: `http://127.0.0.1:5000`
 
-### 3. Optional: Gemini explanations
+### 2) Start frontend (new terminal)
 
-Create `backend/.env` with:
-
+```bash
+npm run dev
 ```
+
+Frontend URL is usually `http://127.0.0.1:5173`.
+If that port is already in use, Vite automatically picks the next free port (for example `5174`).
+
+## API Proxy (Dev)
+
+Vite proxies these frontend paths to Flask:
+
+- `/analyze` -> `http://127.0.0.1:5000/analyze`
+- `/outputs/*` -> `http://127.0.0.1:5000/outputs/*`
+
+So both frontend and backend must be running in development.
+
+## Optional Gemini Setup
+
+Create `backend/.env`:
+
+```env
 GOOGLE_API_KEY=your_key_here
 ```
 
-Without it, explanations will fall back to a basic summary.
+If this key is missing or invalid, the app still works and falls back to a safe text explanation.
 
-## Run Order
+## Notes
 
-1. Start the backend first (`python app.py` in `backend/`)
-2. Start the frontend (`npm run dev` in project root)
-3. Open http://127.0.0.1:5173
-
-The Vite dev server proxies `/analyze` and `/outputs` to the backend, so both must be running for full functionality.
+- The frontend is intentionally **single-page** (no landing/dashboard route split).
+- Upload preview and heatmap viewer use safe blob URL lifecycle handling.
+- Results section appears after analysis and auto-scrolls into view.
