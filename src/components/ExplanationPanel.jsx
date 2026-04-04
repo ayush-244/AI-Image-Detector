@@ -11,22 +11,22 @@ export default function ExplanationPanel({ explanation, hasResult }) {
     >
       <div className="mb-5">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-xs uppercase tracking-widest text-amber-300 font-bold">AI Insights</span>
+          <span className="text-xs uppercase tracking-widest text-amber-600 dark:text-amber-300 font-bold">AI Insights</span>
         </div>
-        <h3 className="text-xl font-bold text-white">Technical Analysis</h3>
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white">Technical Analysis</h3>
       </div>
 
       <div className="flex-1 min-h-[160px] overflow-y-auto pr-2 scrollbar-thin">
         {!hasResult ? (
-          <p className="text-sm text-slate-400/90 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400/90 leading-relaxed">
             Detailed model reasoning on decision pathways, confidence factors, and evidence patterns will appear after analysis.
           </p>
         ) : explanation ? (
-          <p className="text-sm text-slate-100 leading-relaxed whitespace-pre-line font-light tracking-tight">
+          <p className="text-sm text-slate-700 dark:text-slate-100 leading-relaxed whitespace-pre-line font-light tracking-tight">
             {explanation}
           </p>
         ) : (
-          <p className="text-sm text-slate-400/80 leading-relaxed">
+          <p className="text-sm text-slate-600 dark:text-slate-400/80 leading-relaxed">
             Technical explanation unavailable for this analysis.
           </p>
         )}

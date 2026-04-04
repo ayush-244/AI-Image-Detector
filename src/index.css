@@ -4,7 +4,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* Dark mode (default) */
+:root,
+html.dark {
   --bg-ink: #05070e;
   --bg-mid: #0a0e1a;
   --bg-secondary: #111827;
@@ -22,6 +24,25 @@
   --surface-glow: rgba(124, 58, 237, 0.1);
 }
 
+/* Light mode - Professional SaaS */
+html.light {
+  --bg-ink: #f8f9fb;
+  --bg-mid: #f1f3f7;
+  --bg-secondary: #e9ecf0;
+  --panel: rgba(255, 255, 255, 0.98);
+  --panel-border: rgba(99, 102, 241, 0.20);
+  --text-main: #0f172a;
+  --text-muted: #334155;
+  --text-tertiary: #64748b;
+  --brand: #6366f1;
+  --brand-light: #e0e7ff;
+  --brand-dark: #4f46e5;
+  --accent-cyan: #0891b2;
+  --accent-blue: #2563eb;
+  --accent-emerald: #059669;
+  --surface-glow: rgba(99, 102, 241, 0.05);
+}
+
 /* Keep custom rules after Tailwind directives. */
 *,
 *::before,
@@ -31,16 +52,35 @@
 
 body {
   margin: 0;
-  background:
-    radial-gradient(1400px 900px at 15% -20%, rgba(124, 58, 237, 0.18), transparent 50%),
-    radial-gradient(1000px 600px at 85% 10%, rgba(59, 130, 246, 0.15), transparent 55%),
-    radial-gradient(800px 500px at 50% 105%, rgba(16, 185, 129, 0.08), transparent 60%),
-    linear-gradient(135deg, var(--bg-ink) 0%, var(--bg-mid) 100%);
   color: var(--text-main);
   font-family: 'Manrope', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Dark mode background */
+html.dark body,
+:root body {
+  background:
+    radial-gradient(1400px 900px at 15% -20%, rgba(124, 58, 237, 0.18), transparent 50%),
+    radial-gradient(1000px 600px at 85% 10%, rgba(59, 130, 246, 0.15), transparent 55%),
+    radial-gradient(800px 500px at 50% 105%, rgba(16, 185, 129, 0.08), transparent 60%),
+    linear-gradient(135deg, var(--bg-ink) 0%, var(--bg-mid) 100%);
+}
+
+/* Light mode background */
+html.light body {
+  background:
+    radial-gradient(1400px 900px at 15% -20%, rgba(99, 102, 241, 0.05), transparent 50%),
+    radial-gradient(1000px 600px at 85% 10%, rgba(37, 99, 235, 0.04), transparent 55%),
+    radial-gradient(800px 500px at 50% 105%, rgba(5, 150, 105, 0.02), transparent 60%),
+    linear-gradient(135deg, #ffffff 0%, #f8f9fb 100%);
+}
+
+html {
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 h1,
@@ -75,6 +115,10 @@ h6 {
   left: -6rem;
 }
 
+html.light .orb-1 {
+  opacity: 0.15;
+}
+
 .orb-2 {
   width: 24rem;
   height: 24rem;
@@ -84,6 +128,10 @@ h6 {
   animation-delay: -5s;
 }
 
+html.light .orb-2 {
+  opacity: 0.12;
+}
+
 .orb-3 {
   width: 28rem;
   height: 28rem;
@@ -91,6 +139,10 @@ h6 {
   bottom: -8rem;
   left: 25%;
   animation-delay: -8s;
+}
+
+html.light .orb-3 {
+  opacity: 0.1;
 }
 
 .grain-layer {
@@ -112,12 +164,29 @@ h6 {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.glass-panel:hover {
-  border-color: rgba(139, 176, 255, 0.25);
+html.light .glass-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: rgba(99, 102, 241, 0.18);
   box-shadow:
-    0 25px 60px rgba(0, 0, 0, 0.45),
-    0 0 50px rgba(124, 58, 237, 0.15),
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(99, 102, 241, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+html.light .glass-panel:hover {
+  border-color: rgba(99, 102, 241, 0.30);
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.06),
+    0 2px 6px rgba(99, 102, 241, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+html.light .glass-panel:hover {
+  border-color: rgba(139, 176, 255, 0.45);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.12),
+    0 0 50px rgba(124, 58, 237, 0.10),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .glass-chip {
@@ -136,9 +205,21 @@ h6 {
   transition: all 0.2s ease;
 }
 
+html.light .glass-chip {
+  border-color: rgba(99, 102, 241, 0.25);
+  background: rgba(99, 102, 241, 0.08);
+  color: #4f46e5;
+}
+
 .glass-chip:hover {
   background: rgba(124, 58, 237, 0.15);
   border-color: rgba(124, 58, 237, 0.4);
+}
+
+html.light .glass-chip:hover {
+  background: rgba(99, 102, 241, 0.15);
+  border-color: rgba(99, 102, 241, 0.40);
+  color: #3730a3;
 }
 
 .scrollbar-thin {

@@ -16,12 +16,12 @@ function BarRow({ label, value, colorClass }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-sm font-semibold text-slate-200 uppercase tracking-wide">{label}</p>
-        <p className="text-sm font-bold text-slate-100">
-          {Number.isFinite(value) ? `${value.toFixed(1)}%` : '—'}
+        <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 uppercase tracking-wide">{label}</p>
+        <p className="text-sm font-bold text-slate-800 dark:text-slate-100">
+          {Number.isFinite(value) ? `${value.toFixed(1)}%` : '\u2014'}
         </p>
       </div>
-      <div className="relative h-8 rounded-full bg-slate-800/50 overflow-hidden border border-slate-700/40">
+      <div className="relative h-8 rounded-full bg-slate-300/50 dark:bg-slate-800/50 overflow-hidden border border-slate-400/40 dark:border-slate-700/40">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${safeValue}%` }}
@@ -56,15 +56,15 @@ export default function ConfidenceGraph({ realProbability, fakeProbability }) {
     >
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-lg font-bold text-white">Confidence Distribution</h2>
-          <p className="text-sm text-slate-300/80 mt-1">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Confidence Distribution</h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300/80 mt-1">
             REAL vs FAKE probability comparison for this image analysis.
           </p>
         </div>
       </div>
 
       {!hasData ? (
-        <div className="h-40 flex items-center justify-center text-sm text-slate-400/80 rounded-xl bg-slate-950/30 border border-slate-700/40">
+        <div className="h-40 flex items-center justify-center text-sm text-slate-600 dark:text-slate-400/80 rounded-xl bg-slate-200/50 dark:bg-slate-950/30 border border-slate-400/40 dark:border-slate-700/40">
           Run an analysis to view confidence distribution.
         </div>
       ) : (
