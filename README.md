@@ -10,7 +10,7 @@
 
 A cutting-edge web application that uses deep learning to detect AI-generated images with 95%+ accuracy. Features enterprise-grade UI, Grad-CAM visualization, and optional Gemini-powered explanations.
 
-[🚀 Features](#-features) • [📦 Installation](#-installation) • [🔧 Configuration](#-configuration) • [📡 API Docs](#-api-documentation) • [🌐 Deployment](#-deployment) • [🎨 Dark Mode](#-dark--light-theme)
+[🚀 Features](#-features) • [📦 Installation](#-installation) • [🔧 Configuration](#-configuration) • [📡 API Docs](#-api-documentation) • [� Theme](#-dark--light-theme)
 
 </div>
 
@@ -486,157 +486,16 @@ for filename in os.listdir(image_dir):
 
 ---
 
-## 🌐 Deployment
+## 🚀 Deployment
 
-### Option 1: Vercel + Railway (Recommended)
+This project is ready for deployment to any platform. Key features:
 
-#### Frontend on Vercel
+- **Frontend**: Pure React + Vite → Deploy to Vercel, Netlify, AWS S3, etc.
+- **Backend**: Flask API → Deploy to Railway, Heroku, AWS Lambda, Google Cloud Run, etc.
+- **Docker Ready**: Includes `Dockerfile` files for containerization
+- **No Lock-in**: Platform-agnostic design, works everywhere
 
-1. **Push code to GitHub:**
-   ```bash
-   git add .
-   git commit -m "Deploy: AuthenticAI"
-   git push origin main
-   ```
-
-2. **Deploy on Vercel:**
-   - Go to [vercel.com](https://vercel.com)
-   - Click "New Project" → Select your repo
-   - Framework: Vite
-   - Environment: Set `VITE_API_URL=your-railway-api-url`
-   - Deploy
-
-3. **Get Vercel URL:** `https://your-project.vercel.app`
-
-#### Backend on Railway
-
-1. **Connect GitHub to Railway:**
-   - Go to [railway.app](https://railway.app)
-   - Click "New Project" → "Deploy from GitHub"
-   - Select your repository
-
-2. **Configure Railway:**
-   - Root Directory: `backend`
-   - Python Version: 3.10
-   - Start Command: `python app.py`
-   - Port: `5000`
-
-3. **Set Environment Variables:**
-   ```env
-   GOOGLE_API_KEY=your_key
-   API_KEY=your_api_key
-   FLASK_ENV=production
-   ```
-
-4. **Get Railway URL:** `https://your-project-api.up.railway.app`
-
-5. **Update Frontend:**
-   - Set `VITE_API_URL` to your Railway URL in Vercel
-
----
-
-### Option 2: Docker + Container Registry
-
-#### Build and Push Docker Images
-
-```bash
-# Build frontend image
-docker build -t your-registry/authenticit-frontend:latest .
-docker push your-registry/authenticit-frontend:latest
-
-# Build backend image
-cd backend
-docker build -t your-registry/authenticit-backend:latest .
-docker push your-registry/authenticit-backend:latest
-cd ..
-```
-
-#### Deploy to Cloud Platforms
-
-**Google Cloud Run:**
-```bash
-# Backend
-gcloud run deploy authenticit-backend \
-  --image your-registry/authenticit-backend:latest \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated \
-  --set-env-vars "GOOGLE_API_KEY=xyz,API_KEY=abc"
-
-# Frontend
-gcloud run deploy authenticit-frontend \
-  --image your-registry/authenticit-frontend:latest \
-  --platform managed \
-  --region us-central1 \
-  --allow-unauthenticated
-```
-
-**AWS ECS:**
-```bash
-# Create task definition and service
-aws ecs create-service \
-  --cluster my-cluster \
-  --service-name authenticit \
-  --task-definition authenticit-backend:1 \
-  --desired-count 2
-```
-
----
-
-### Option 3: Traditional VPS (DigitalOcean, Heroku, etc.)
-
-#### Using PM2 for Process Management
-
-```bash
-# Install PM2
-npm install -g pm2
-
-# Start backend
-cd backend
-pm2 start app.py --name "authenticit-api"
-
-# Start frontend (build first)
-cd ..
-npm run build
-pm2 serve dist 3000 --spa --name "authenticit-web"
-
-# Save PM2 configuration
-pm2 save
-pm2 startup
-```
-
-#### Nginx Reverse Proxy Setup
-
-```nginx
-# /etc/nginx/sites-available/authenticit
-upstream backend {
-    server 127.0.0.1:5000;
-}
-
-upstream frontend {
-    server 127.0.0.1:3000;
-}
-
-server {
-    listen 80;
-    server_name yourdomain.com;
-
-    # API
-    location /api/ {
-        proxy_pass http://backend;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    # Frontend
-    location / {
-        proxy_pass http://frontend;
-        proxy_set_header Host $host;
-    }
-}
-```
+Deployment guides for specific platforms will be added based on your deployment choice.
 
 ---
 
