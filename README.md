@@ -680,7 +680,6 @@ Contributions welcome! Please:
 
 <div align="center">
 
-Made with ❤️ by the AuthenticAI Team
 
 ⭐ If this project helped you, please consider giving it a star!
 
@@ -805,3 +804,10 @@ Response (example):
 - Runtime artifacts are written to `backend/uploads/` and `backend/outputs/`.
 - CORS is enabled in the backend for local development.
 - If `model.h5` is not found, backend returns deterministic fallback outputs to keep the UI functional.
+
+
+
+npm install
+cd backend && pip install -r requirements.txt
+npm run dev  # Terminal 1
+python app.py  # Terminal 2 in backend/
