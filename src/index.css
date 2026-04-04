@@ -1,6 +1,26 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --bg-ink: #05070e;
+  --bg-mid: #0a0e1a;
+  --bg-secondary: #111827;
+  --panel: rgba(6, 12, 28, 0.55);
+  --panel-border: rgba(139, 176, 255, 0.18);
+  --text-main: #f0f4f8;
+  --text-muted: #8b96b8;
+  --text-tertiary: #6b7387;
+  --brand: #7c3aed;
+  --brand-light: #a78bfa;
+  --brand-dark: #5b21b6;
+  --accent-cyan: #06b6d4;
+  --accent-blue: #3b82f6;
+  --accent-emerald: #10b981;
+  --surface-glow: rgba(124, 58, 237, 0.1);
+}
 
 /* Keep custom rules after Tailwind directives. */
 *,
@@ -11,11 +31,114 @@
 
 body {
   margin: 0;
-  background-color: #0d0d0d;
-  color: #f9fafb;
-  font-family: Inter, system-ui, sans-serif;
+  background:
+    radial-gradient(1400px 900px at 15% -20%, rgba(124, 58, 237, 0.18), transparent 50%),
+    radial-gradient(1000px 600px at 85% 10%, rgba(59, 130, 246, 0.15), transparent 55%),
+    radial-gradient(800px 500px at 50% 105%, rgba(16, 185, 129, 0.08), transparent 60%),
+    linear-gradient(135deg, var(--bg-ink) 0%, var(--bg-mid) 100%);
+  color: var(--text-main);
+  font-family: 'Manrope', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Sora', sans-serif;
+}
+
+.ambient-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.32;
+  animation: float 16s ease-in-out infinite;
+}
+
+.orb-1 {
+  width: 32rem;
+  height: 32rem;
+  background: linear-gradient(135deg, #7c3aed, #3b82f6);
+  top: -8rem;
+  left: -6rem;
+}
+
+.orb-2 {
+  width: 24rem;
+  height: 24rem;
+  background: linear-gradient(135deg, #06b6d4, #7c3aed);
+  top: 6rem;
+  right: -3rem;
+  animation-delay: -5s;
+}
+
+.orb-3 {
+  width: 28rem;
+  height: 28rem;
+  background: linear-gradient(135deg, #10b981, #06b6d4);
+  bottom: -8rem;
+  left: 25%;
+  animation-delay: -8s;
+}
+
+.grain-layer {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.06) 0.6px, transparent 0.6px);
+  background-size: 2px 2px;
+  opacity: 0.1;
+}
+
+.glass-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(124, 58, 237, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(18px);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-panel:hover {
+  border-color: rgba(139, 176, 255, 0.25);
+  box-shadow:
+    0 25px 60px rgba(0, 0, 0, 0.45),
+    0 0 50px rgba(124, 58, 237, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.glass-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(124, 58, 237, 0.25);
+  background: rgba(124, 58, 237, 0.08);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: #a78bfa;
+  text-transform: uppercase;
+  transition: all 0.2s ease;
+}
+
+.glass-chip:hover {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: rgba(124, 58, 237, 0.4);
 }
 
 .scrollbar-thin {
@@ -33,5 +156,17 @@ body {
 .scrollbar-thin::-webkit-scrollbar-thumb {
   background-color: rgba(148, 163, 184, 0.6);
   border-radius: 9999px;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0px) translateX(0px);
+  }
+  50% {
+    transform: translateY(-18px) translateX(12px);
+  }
+  100% {
+    transform: translateY(0px) translateX(0px);
+  }
 }
 

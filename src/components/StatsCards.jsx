@@ -4,16 +4,16 @@ import { motion } from 'framer-motion';
 function Badge({ label }) {
   const isReal = label === 'REAL';
   const colorClass = isReal
-    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
-    : 'bg-red-500/15 text-red-300 border-red-500/40';
+    ? 'bg-emerald-500/15 text-emerald-200 border-emerald-400/35'
+    : 'bg-rose-500/15 text-rose-200 border-rose-400/35';
 
   return (
     <span
-      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${colorClass}`}
+      className={`inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-bold border ${colorClass} uppercase tracking-wider`}
     >
       <span
-        className={`mr-1.5 h-1.5 w-1.5 rounded-full ${
-          isReal ? 'bg-emerald-400' : 'bg-red-400'
+        className={`mr-2 h-2 w-2 rounded-full ${
+          isReal ? 'bg-emerald-400' : 'bg-rose-400'
         }`}
       />
       {label || '—'}
@@ -24,11 +24,11 @@ function Badge({ label }) {
 function ProgressBar({ value, colorClass }) {
   const safeValue = Number.isFinite(value) ? Math.max(0, Math.min(100, value)) : 0;
   return (
-    <div className="w-full h-2.5 rounded-full bg-slate-800/80 overflow-hidden">
+    <div className="w-full h-3 rounded-full bg-slate-800/50 overflow-hidden border border-slate-700/40">
       <motion.div
         initial={{ width: 0 }}
         animate={{ width: `${safeValue}%` }}
-        transition={{ duration: 0.6, ease: 'easeOut' }}
+        transition={{ duration: 0.7, ease: 'easeOut' }}
         className={`h-full rounded-full ${colorClass}`}
       />
     </div>
@@ -36,7 +36,7 @@ function ProgressBar({ value, colorClass }) {
 }
 
 const cardStyle =
-  'bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg shadow-cyan-500/20 border border-white/10 hover:border-cyan-500/20 transition-colors';
+  'glass-panel rounded-3xl p-7 hover:border-purple-400/40 transition-all';
 
 export default function StatsCards({ result }) {
   const {
@@ -54,101 +54,102 @@ export default function StatsCards({ result }) {
   const fakeProb = fake_probability != null ? Number(fake_probability) * 100 : null;
 
   return (
-    <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <>
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className={`${cardStyle} flex flex-col justify-between`}
+        className={`${cardStyle} flex flex-col justify-between min-h-[280px]`}
       >
         <div>
-          <p className="text-sm text-gray-400">Prediction</p>
-          <div className="mt-3 flex items-center justify-between">
-            <Badge label={label} />
-            <p className="text-xs text-gray-500">AI verdict</p>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs uppercase tracking-widest text-purple-300 font-bold">AI Verdict</span>
           </div>
-          <p className="mt-4 text-xs text-gray-400">
-            The detector evaluates pixel-level and feature-space patterns to classify the
-            image as REAL or FAKE.
+          <h3 className="text-xl font-bold text-white mt-2 mb-4">Prediction</h3>
+          <div className="mt-5">
+            <Badge label={label} />
+          </div>
+          <p className="mt-5 text-xs text-slate-400 leading-relaxed">
+            Neural network classification of pixel and feature-space patterns.
           </p>
         </div>
-        <div className="mt-5 flex items-end justify-between">
-          <div>
-            <p className="text-xs text-gray-400">Overall confidence</p>
-            <p className="mt-1 text-2xl font-bold">
-              {confidenceValue != null ? `${confidenceValue.toFixed(1)}%` : '—'}
-            </p>
-          </div>
+        <div className="mt-6 pt-4 border-t border-slate-700/50">
+          <p className="text-xs text-slate-400 mb-2">Overall Confidence</p>
+          <p className="text-3xl font-bold text-white">
+            {confidenceValue != null ? `${confidenceValue.toFixed(1)}%` : '—'}
+          </p>
         </div>
       </motion.div>
 
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className={cardStyle}
+        transition={{ delay: 0.15 }}
+        className={`${cardStyle} flex flex-col justify-between min-h-[280px]`}
       >
-        <p className="text-sm text-gray-400">Confidence breakdown</p>
-        <div className="mt-4 space-y-4">
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-400">Real probability</p>
-              <p className="text-xs font-medium text-emerald-300">
-                {realProb != null ? `${realProb.toFixed(1)}%` : '—'}
-              </p>
-            </div>
-            <ProgressBar value={realProb} colorClass="bg-emerald-500" />
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs uppercase tracking-widest text-indigo-300 font-bold">Probabilities</span>
           </div>
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-gray-400">Fake probability</p>
-              <p className="text-xs font-medium text-red-300">
-                {fakeProb != null ? `${fakeProb.toFixed(1)}%` : '—'}
-              </p>
-            </div>
-            <ProgressBar value={fakeProb} colorClass="bg-red-500" />
-          </div>
-        </div>
-        <p className="mt-4 text-[11px] text-gray-500">
-          Probabilities are normalized across the classifier&apos;s internal logits to
-          provide a calibrated confidence profile.
-        </p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-        className={cardStyle}
-      >
-        <p className="text-sm text-gray-400">Inference stats</p>
-        <dl className="mt-4 space-y-3">
-          <div className="flex items-center justify-between">
+          <h3 className="text-xl font-bold text-white mt-2 mb-4">Confidence Breakdown</h3>
+          <div className="mt-3 space-y-5">
             <div>
-              <dt className="text-xs text-gray-400">Inference time</dt>
-              <dd className="text-sm font-semibold">
-                {inference_time_ms != null ? `${inference_time_ms} ms` : '—'}
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-slate-200">Real</p>
+                <p className="text-sm font-bold text-emerald-300">
+                  {realProb != null ? `${realProb.toFixed(1)}%` : '—'}
+                </p>
+              </div>
+              <ProgressBar value={realProb} colorClass="bg-emerald-500" />
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-sm font-semibold text-slate-200">Fake</p>
+                <p className="text-sm font-bold text-red-300">
+                  {fakeProb != null ? `${fakeProb.toFixed(1)}%` : '—'}
+                </p>
+              </div>
+              <ProgressBar value={fakeProb} colorClass="bg-red-500" />
+            </div>
+          </div>
+        </div>
+        <div className="mt-6 pt-4 border-t border-slate-700/50">
+          <p className="text-xs text-slate-400">Calibrated logit normalization</p>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className={`${cardStyle} flex flex-col justify-between min-h-[280px]`}
+      >
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-xs uppercase tracking-widest text-cyan-300 font-bold">Metadata</span>
+          </div>
+          <h3 className="text-xl font-bold text-white mt-2 mb-4">Inference Stats</h3>
+          <dl className="space-y-4">
+            <div>
+              <dt className="text-xs text-slate-400 uppercase tracking-wide mb-1">Inference Time</dt>
+              <dd className="text-lg font-bold text-white">
+                {inference_time_ms != null ? `${inference_time_ms}ms` : '—'}
               </dd>
             </div>
-          </div>
-          <div className="flex items-center justify-between">
             <div>
-              <dt className="text-xs text-gray-400">Activation strength</dt>
-              <dd className="text-sm font-semibold">
+              <dt className="text-xs text-slate-400 uppercase tracking-wide mb-1">Activation Strength</dt>
+              <dd className="text-lg font-bold text-white">
                 {activation_strength != null ? activation_strength : '—'}
               </dd>
             </div>
-          </div>
-          <div className="flex items-center justify-between">
             <div>
-              <dt className="text-xs text-gray-400">Model version</dt>
-              <dd className="text-sm font-semibold">
+              <dt className="text-xs text-slate-400 uppercase tracking-wide mb-1">Model Version</dt>
+              <dd className="text-lg font-bold text-white">
                 {model_version || '—'}
               </dd>
             </div>
-          </div>
-        </dl>
+          </dl>
+        </div>
       </motion.div>
-    </section>
+    </>
   );
 }

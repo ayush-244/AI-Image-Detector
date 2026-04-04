@@ -1,67 +1,89 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import Navbar from './components/Navbar.jsx';
-import UploadCard from './components/UploadCard.jsx';
-import StatsCards from './components/StatsCards.jsx';
-import ConfidenceGraph from './components/ConfidenceGraph.jsx';
-import HeatmapViewer from './components/HeatmapViewer.jsx';
-import ExplanationPanel from './components/ExplanationPanel.jsx';
-import { analyzeImage } from './api.js';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
+import { motion } from 'framer-motion';
+import { analyzeImage } from './api';
+import ExplanationPanel from './components/ExplanationPanel';
+import HeatmapViewer from './components/HeatmapViewer';
+import Navbar from './components/Navbar';
+import StatsCards from './components/StatsCards';
+import UploadCard from './components/UploadCard';
+
+const ConfidenceGraph = lazy(() => import('./components/ConfidenceGraph'));
 
 export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [result, setResult] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState('');
   const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const [originalImageUrl, setOriginalImageUrl] = useState('');
+  const [result, setResult] = useState(null);
 
+  const heroRef = useRef(null);
+  const uploadRef = useRef(null);
   const resultsRef = useRef(null);
 
-  useEffect(() => {
-    document.documentElement.classList.add('dark');
-  }, []);
+  const onScrollTo = (sectionId) => {
+    const map = {
+      hero: heroRef,
+      upload: uploadRef,
+      results: resultsRef,
+    };
+    map[sectionId]?.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      if (originalImageUrl) {
+        URL.revokeObjectURL(originalImageUrl);
+      }
     };
-  }, [previewUrl]);
+  }, [previewUrl, originalImageUrl]);
 
-  const scrollTo = useCallback((sectionId) => {
-    const el = document.getElementById(sectionId);
-    el?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
-
-  const handleFileSelected = useCallback((file, validationError) => {
-    if (validationError) {
-      setError(validationError);
+  const handleFileSelected = (file, customError) => {
+    if (customError) {
+      setSelectedFile(null);
+      setError(customError);
       return;
     }
-    if (!file) return;
     setError('');
-    setResult(null);
     setSelectedFile(file);
-  }, []);
+  };
 
-  const handleAnalyze = useCallback(async () => {
-    if (!selectedFile) return;
+  const handleAnalyzeClick = async () => {
+    if (!selectedFile) {
+      setError('Please select an image before running analysis.');
+      return;
+    }
+
     setError('');
     setIsLoading(true);
     setResult(null);
 
+    const localUrl = URL.createObjectURL(selectedFile);
+    setOriginalImageUrl((previous) => {
+      if (previous) {
+        URL.revokeObjectURL(previous);
+      }
+      return localUrl;
+    });
+
     try {
       const data = await analyzeImage(selectedFile);
-      const base = import.meta.env.DEV ? window.location.origin : 'http://127.0.0.1:5000';
       const normalized = {
         ...data,
         heatmap_url:
           data?.heatmap_url && typeof data.heatmap_url === 'string'
             ? data.heatmap_url.startsWith('http')
               ? data.heatmap_url
-              : base + (data.heatmap_url.startsWith('/') ? '' : '/') + data.heatmap_url
+              : `http://127.0.0.1:5000${data.heatmap_url}`
             : null,
       };
       setResult(normalized);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (e) {
       const message =
         e?.message ||
@@ -72,130 +94,66 @@ export default function App() {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedFile]);
-
-  useEffect(() => {
-    if (!result) return;
-    const t = requestAnimationFrame(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-    return () => cancelAnimationFrame(t);
-  }, [result]);
-
-  const hasResult = !!result;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.05 },
-    },
   };
 
-  const itemVariants = {
-    hidden: { opacity: 0, y: 24 },
-    show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] } },
-  };
+  const hasResult = Boolean(result);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d0d0d] to-[#111827] text-white">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-cyan-400/10 blur-3xl opacity-20 rounded-full" />
-        <div className="absolute bottom-1/3 right-0 w-96 h-96 bg-teal-500/10 blur-3xl opacity-10 rounded-full" />
+    <div className="min-h-screen text-white relative overflow-x-hidden">
+      <div className="ambient-background" aria-hidden="true">
+        <div className="orb orb-1" />
+        <div className="orb orb-2" />
+        <div className="orb orb-3" />
+        <div className="grain-layer" />
       </div>
 
-      <Navbar onScrollTo={scrollTo} />
+      <Navbar onScrollTo={onScrollTo} />
 
-      <main className="relative z-10 pt-28 pb-16">
-        <section id="hero" className="px-4 sm:px-6 lg:px-8 pb-20 md:pb-28">
-          <div className="max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-8 items-center min-h-[60vh]">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6 }}
-                className="text-center lg:text-left order-2 lg:order-1"
-              >
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
-                  Detect Fake Images with{' '}
-                  <span className="bg-gradient-to-r from-cyan-400 to-teal-300 bg-clip-text text-transparent">
-                    AI
-                  </span>
-                </h1>
-                <p className="mt-5 text-gray-400 text-lg max-w-xl mx-auto lg:mx-0">
-                  Enterprise-grade deep learning with explainable heatmaps and AI-powered
-                  technical summaries.
-                </p>
-                <motion.button
-                  type="button"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => scrollTo('upload')}
-                  className="mt-8 inline-flex px-8 py-3 rounded-full bg-gradient-to-r from-cyan-400 to-teal-300 text-black font-semibold shadow-lg shadow-cyan-500/20"
-                >
-                  Start analyzing
-                </motion.button>
-              </motion.div>
+      <main className="relative z-10 pt-28 sm:pt-32 pb-12 sm:pb-16">
+        <section ref={heroRef} className="px-4 sm:px-6 py-12 sm:py-16">
+          <div className="max-w-6xl mx-auto text-center">
+            <motion.p
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45 }}
+              className="inline-flex items-center px-4 py-2 rounded-full text-xs sm:text-sm border border-purple-400/40 bg-purple-500/10 text-purple-200 tracking-widest font-semibold"
+            >
+              ✨ Enterprise-Grade Image Authentication
+            </motion.p>
 
-              <div className="order-1 lg:order-2 flex justify-center relative">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-64 h-64 bg-cyan-400/30 blur-3xl rounded-full opacity-30" />
-                </div>
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.6, delay: 0.15 }}
-                  className="relative w-full max-w-sm"
-                >
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-                    className="bg-white/5 backdrop-blur-md rounded-2xl p-6 border border-white/10 shadow-lg shadow-cyan-500/20"
-                  >
-                    <p className="text-xs text-gray-500">Demo</p>
-                    <p className="text-2xl font-bold text-cyan-400 mt-1">94.2%</p>
-                    <p className="text-sm text-gray-400 mt-2">Confidence preview</p>
-                    <div className="mt-4 h-24 rounded-xl bg-black/30 border border-white/5" />
-                    <div className="mt-4 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => scrollTo('upload')}
-                        className="flex-1 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm font-medium"
-                      >
-                        Upload
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => scrollTo('upload')}
-                        className="flex-1 py-2 rounded-xl bg-gradient-to-r from-cyan-400 to-teal-300 text-black text-sm font-semibold"
-                      >
-                        Analyze
-                      </button>
-                    </div>
-                  </motion.div>
-                </motion.div>
-              </div>
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.08 }}
+              className="mt-7 text-5xl sm:text-7xl font-bold tracking-tight leading-1.2 bg-gradient-to-r from-purple-200 via-blue-200 to-cyan-200 bg-clip-text text-transparent"
+            >
+              Verify Image Authenticity with Precision
+            </motion.h1>
 
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
-                className="text-center lg:text-right order-3"
-              >
-                <h2 className="text-2xl md:text-3xl font-bold">
-                  Fast &amp; Secure
-                  <br />
-                  <span className="text-cyan-400">Detection Platform</span>
-                </h2>
-                <p className="mt-4 text-gray-400 max-w-md mx-auto lg:ml-auto lg:mr-0">
-                  Real-time inference, Grad-CAM visualization, and structured explanations.
-                </p>
-              </motion.div>
-            </div>
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.14 }}
+              className="mt-6 text-slate-300/90 max-w-3xl mx-auto text-base sm:text-lg leading-relaxed font-light"
+            >
+              Enterprise-trusted AI platform for detecting manipulated images. Powered by advanced neural networks, interpretable Grad-CAM analysis, and secure API infrastructure. <span className="text-purple-300 font-medium">Trusted by digital forensics experts.</span>
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.2 }}
+              className="mt-10 flex flex-wrap items-center justify-center gap-2 sm:gap-3"
+            >
+              <span className="glass-chip">🚀 Real-time Analysis</span>
+              <span className="glass-chip">🔍 Explainable AI (Grad-CAM)</span>
+              <span className="glass-chip">📊 Confidence Metrics</span>
+              <span className="glass-chip">📝 Automated Insights</span>
+            </motion.div>
           </div>
         </section>
 
-        <section id="upload" className="px-4 sm:px-6 lg:px-8 py-16 scroll-mt-24">
+        <section ref={uploadRef} className="px-4 sm:px-6 py-4 sm:py-8">
           <UploadCard
             isLoading={isLoading}
             error={error}
@@ -204,79 +162,65 @@ export default function App() {
             setPreviewUrl={setPreviewUrl}
             selectedFile={selectedFile}
             onFileSelected={handleFileSelected}
-            onAnalyzeClick={handleAnalyze}
+            onAnalyzeClick={handleAnalyzeClick}
           />
         </section>
 
-        <AnimatePresence>
-          {hasResult && (
-            <motion.section
-              ref={resultsRef}
-              id="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.4 }}
-              className="px-4 sm:px-6 lg:px-8 py-12 scroll-mt-24"
-            >
-              <motion.h2
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-3xl md:text-4xl font-bold text-center mb-10"
-              >
-                Analysis results
-              </motion.h2>
+        <section ref={resultsRef} className="px-4 sm:px-6 py-16 sm:py-20">
+          <div className="max-w-7xl mx-auto">
+            {/* Results Header */}
+            {result && (
+              <div className="mb-12">
+                <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-purple-200 via-blue-200 to-cyan-200 bg-clip-text text-transparent mb-3">
+                  Analysis Results
+                </h2>
+                <p className="text-slate-300/80 text-sm sm:text-base max-w-2xl">
+                  Complete forensic analysis with confidence metrics, explainability evidence, and detailed model insights.
+                </p>
+              </div>
+            )}
 
-              <motion.div
-                variants={containerVariants}
-                initial="hidden"
-                animate="show"
-                className="max-w-7xl mx-auto space-y-6"
-              >
-                <motion.div variants={itemVariants}>
-                  <StatsCards result={result} />
-                </motion.div>
+            {/* Main Grid Layout */}
+            <div className="space-y-10">
+              {/* Key Metrics Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5">
+                <StatsCards result={result} />
+              </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                  <motion.div variants={itemVariants} className="space-y-6">
+              {/* Charts & Analysis Row */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <Suspense
+                    fallback={
+                      <div className="glass-panel rounded-3xl p-7 text-sm text-slate-300 h-96 flex items-center justify-center">
+                        Loading confidence analysis...
+                      </div>
+                    }
+                  >
                     <ConfidenceGraph
                       realProbability={result?.real_probability}
                       fakeProbability={result?.fake_probability}
                     />
-                  </motion.div>
-                  <motion.div variants={itemVariants}>
-                    <ExplanationPanel
-                      explanation={result?.explanation}
-                      hasResult={hasResult}
-                    />
-                  </motion.div>
+                  </Suspense>
                 </div>
+                <ExplanationPanel explanation={result?.explanation} hasResult={hasResult} />
+              </div>
 
-                <motion.div variants={itemVariants}>
-                  <HeatmapViewer
-                    originalUrl={previewUrl}
-                    heatmapUrl={result?.heatmap_url}
-                    hasResult={hasResult}
-                    isLoading={isLoading}
-                  />
-                </motion.div>
-              </motion.div>
-            </motion.section>
-          )}
-        </AnimatePresence>
-
-        <footer className="relative z-10 border-t border-white/10 mt-16 px-4 py-10">
-          <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-gray-500">
-            <div className="flex items-center gap-2">
-              <span className="h-8 w-8 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-cyan-400 text-xs font-bold">
-                N
-              </span>
-              <span>© {new Date().getFullYear()} NextWare AI</span>
+              {/* Evidence Visualization */}
+              <div>
+                <HeatmapViewer
+                  originalUrl={originalImageUrl}
+                  heatmapUrl={result?.heatmap_url}
+                  hasResult={hasResult}
+                  isLoading={isLoading}
+                />
+              </div>
             </div>
-            <p className="text-center sm:text-right">Image authenticity · Built for production</p>
           </div>
-        </footer>
+        </section>
       </main>
     </div>
   );
 }
+
+

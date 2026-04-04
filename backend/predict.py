@@ -1,9 +1,9 @@
-import tensorflow as tf
-import numpy as np
-import cv2
-import sys
 import os
+import sys
 
+import cv2
+import numpy as np
+import tensorflow as tf
 
 # ==============================
 # LOAD MODEL
@@ -14,6 +14,7 @@ MODEL_PATH = "model.h5"
 # Lazily and defensively load the model so that the backend
 # can still start even if the file is missing.
 model = None
+
 
 def _ensure_model_loaded():
     """Load the Keras model once, if available."""
@@ -60,6 +61,7 @@ def preprocess_image(img_path):
 # ==============================
 # PREDICTION FUNCTION
 # ==============================
+
 
 def predict_image(img_path):
 

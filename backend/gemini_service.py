@@ -7,6 +7,7 @@ except Exception:
     def load_dotenv(*_args, **_kwargs):  # type: ignore[override]
         return None
 
+
 try:
     from google import genai
     from google.genai import types
@@ -49,6 +50,7 @@ if api_key and genai is not None and types is not None:
 # ==============================
 # GENERATE EXPLANATION FUNCTION
 # ==============================
+
 
 def generate_explanation(user_question, label, confidence, activation_strength):
     """

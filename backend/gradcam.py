@@ -1,13 +1,15 @@
-import tensorflow as tf
-import numpy as np
-import cv2
-import sys
 import os
+import sys
+
+import cv2
+import numpy as np
+import tensorflow as tf
 
 IMG_SIZE = (224, 224)
 
 # Last convolution layer for MobileNetV2
 LAST_CONV_LAYER = "Conv_1"
+
 
 def preprocess_image(img_path):
 
@@ -26,31 +28,28 @@ def preprocess_image(img_path):
 
 
 def _resolve_last_conv_output(model):
-  """
-  Resolve the last convolutional layer used for Grad-CAM.
-  If LAST_CONV_LAYER is not present, fall back to the last Conv2D-like layer.
-  """
-  try:
-      return model.get_layer(LAST_CONV_LAYER).output
-  except Exception:
-      # Fallback: pick the last Conv2D layer in the model.
-      for layer in reversed(model.layers):
-          if isinstance(layer, tf.keras.layers.Conv2D):
-              return layer.output
-      raise ValueError(
-          f"Could not find LAST_CONV_LAYER '{LAST_CONV_LAYER}' "
-          "or any Conv2D layer in the model. Update gradcam.py to match the model architecture."
-      )
+    """
+    Resolve the last convolutional layer used for Grad-CAM.
+    If LAST_CONV_LAYER is not present, fall back to the last Conv2D-like layer.
+    """
+    try:
+        return model.get_layer(LAST_CONV_LAYER).output
+    except Exception:
+        # Fallback: pick the last Conv2D layer in the model.
+        for layer in reversed(model.layers):
+            if isinstance(layer, tf.keras.layers.Conv2D):
+                return layer.output
+        raise ValueError(
+            f"Could not find LAST_CONV_LAYER '{LAST_CONV_LAYER}' "
+            "or any Conv2D layer in the model. Update gradcam.py to match the model architecture."
+        )
 
 
 def make_gradcam_heatmap(img_array, model):
 
     conv_output_tensor = _resolve_last_conv_output(model)
 
-    grad_model = tf.keras.models.Model(
-        [model.inputs],
-        [conv_output_tensor, model.output]
-    )
+    grad_model = tf.keras.models.Model([model.inputs], [conv_output_tensor, model.output])
 
     with tf.GradientTape() as tape:
 
@@ -60,23 +59,19 @@ def make_gradcam_heatmap(img_array, model):
 
         loss = predictions[:, class_index]
 
-
     grads = tape.gradient(loss, conv_output)
 
     pooled_grads = tf.reduce_mean(grads, axis=(0, 1, 2))
-
 
     conv_output = conv_output[0]
 
     heatmap = conv_output @ pooled_grads[..., tf.newaxis]
     heatmap = tf.squeeze(heatmap)
 
-
     heatmap = tf.maximum(heatmap, 0)
 
     if tf.reduce_max(heatmap) != 0:
         heatmap /= tf.reduce_max(heatmap)
-
 
     return heatmap.numpy()
 
@@ -85,32 +80,20 @@ def make_gradcam_heatmap(img_array, model):
 # OVERLAY HEATMAP ON IMAGE
 # ==============================
 
+
 def overlay_heatmap(heatmap, original_img, alpha=0.4):
 
-    heatmap = cv2.resize(
-        heatmap,
-        (original_img.shape[1], original_img.shape[0])
-    )
+    heatmap = cv2.resize(heatmap, (original_img.shape[1], original_img.shape[0]))
 
     heatmap = np.uint8(255 * heatmap)
 
-    heatmap = cv2.applyColorMap(
-        heatmap,
-        cv2.COLORMAP_JET
-    )
+    heatmap = cv2.applyColorMap(heatmap, cv2.COLORMAP_JET)
     # applyColorMap returns BGR; original_img is RGB — convert for correct blending
     heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)
 
-    overlay = cv2.addWeighted(
-        original_img,
-        1 - alpha,
-        heatmap,
-        alpha,
-        0
-    )
+    overlay = cv2.addWeighted(original_img, 1 - alpha, heatmap, alpha, 0)
 
     return overlay
-
 
 
 if __name__ == "__main__":
@@ -119,10 +102,8 @@ if __name__ == "__main__":
         print("Usage: python gradcam.py <image_path>")
         sys.exit(1)
 
-
     BASE_DIR = os.path.dirname(os.path.abspath(__file__))
     MODEL_PATH = os.path.join(BASE_DIR, "model.h5")
-
 
     print("Loading model...")
 
@@ -130,15 +111,12 @@ if __name__ == "__main__":
 
     print("✅ Model loaded for Grad-CAM")
 
-
     image_path = sys.argv[1]
 
     print("Processing:", image_path)
 
-
     # Load image
     img_array, original = preprocess_image(image_path)
-
 
     # Prediction
     pred = model.predict(img_array)[0][0]
@@ -150,31 +128,17 @@ if __name__ == "__main__":
         label = "FAKE"
         confidence = 1 - pred
 
-
     print(f"Prediction: {label} ({confidence*100:.2f}%)")
-
 
     # Generate heatmap
     heatmap = make_gradcam_heatmap(img_array, model)
 
-
     # Overlay
     result = overlay_heatmap(heatmap, original)
-
 
     # Save output
     output_name = "gradcam_output.jpg"
 
-    cv2.imwrite(
-        output_name,
-        cv2.cvtColor(result, cv2.COLOR_RGB2BGR)
-    )
-
+    cv2.imwrite(output_name, cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
 
     print("✅ Heatmap saved as:", output_name)
-
-
-    
-
-
-    

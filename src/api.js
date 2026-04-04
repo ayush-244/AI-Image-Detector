@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // In dev, Vite proxies /analyze and /outputs to the backend
 const baseURL = import.meta.env.DEV ? '' : 'http://127.0.0.1:5000';
+const apiKey = import.meta.env.VITE_API_KEY;
 const apiClient = axios.create({
   baseURL,
   timeout: 60000,
@@ -12,10 +13,16 @@ export async function analyzeImage(file) {
   formData.append('image', file);
 
   try {
+    const headers = {
+      'Content-Type': 'multipart/form-data',
+    };
+
+    if (apiKey) {
+      headers['X-API-Key'] = apiKey;
+    }
+
     const response = await apiClient.post('/analyze', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
+      headers,
     });
 
     return response.data;

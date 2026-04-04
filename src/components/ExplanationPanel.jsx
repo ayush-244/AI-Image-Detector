@@ -7,32 +7,27 @@ export default function ExplanationPanel({ explanation, hasResult }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.25 }}
-      className="bg-white/5 backdrop-blur-md rounded-2xl p-6 shadow-lg shadow-cyan-500/20 border border-white/10 flex flex-col"
+      className="glass-panel rounded-3xl p-7 flex flex-col min-h-[280px]"
     >
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold">AI Technical Explanation</h2>
-          <p className="text-sm text-gray-400 mt-1">
-            Dive into the model&apos;s reasoning across feature maps, activation clusters,
-            and anomaly patterns.
-          </p>
+      <div className="mb-5">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-xs uppercase tracking-widest text-amber-300 font-bold">AI Insights</span>
         </div>
+        <h3 className="text-xl font-bold text-white">Technical Analysis</h3>
       </div>
 
-      <div className="mt-2 flex-1 min-h-[140px] max-h-64 overflow-y-auto pr-1 scrollbar-thin">
+      <div className="flex-1 min-h-[160px] overflow-y-auto pr-2 scrollbar-thin">
         {!hasResult ? (
-          <p className="text-sm text-gray-500 leading-relaxed">
-            Run an analysis to view a detailed explanation of how the detector arrived at
-            its decision. The model will summarize which regions and statistical
-            signatures most strongly contributed to the REAL vs FAKE verdict.
+          <p className="text-sm text-slate-400/90 leading-relaxed">
+            Detailed model reasoning on decision pathways, confidence factors, and evidence patterns will appear after analysis.
           </p>
         ) : explanation ? (
-          <p className="text-sm text-gray-200 leading-relaxed whitespace-pre-line font-light tracking-wide">
+          <p className="text-sm text-slate-100 leading-relaxed whitespace-pre-line font-light tracking-tight">
             {explanation}
           </p>
         ) : (
-          <p className="text-sm text-gray-500 leading-relaxed">
-            The backend did not return a detailed explanation for this sample.
+          <p className="text-sm text-slate-400/80 leading-relaxed">
+            Technical explanation unavailable for this analysis.
           </p>
         )}
       </div>

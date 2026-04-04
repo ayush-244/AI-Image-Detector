@@ -1,27 +1,39 @@
-import os
-import uuid
 import logging
+import os
+import time
 import traceback
+import uuid
 
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS
-from werkzeug.exceptions import HTTPException
-
-from predict import predict_image
-from gradcam import make_gradcam_heatmap, overlay_heatmap, preprocess_image
-from gemini_service import generate_explanation
-
-import tensorflow as tf
 import cv2
 import numpy as np
-import time
-
+import tensorflow as tf
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from gemini_service import generate_explanation
+from gradcam import make_gradcam_heatmap, overlay_heatmap, preprocess_image
+from werkzeug.exceptions import HTTPException
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+load_dotenv()
+
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})
+
+DEFAULT_RATE_LIMIT = os.getenv("DEFAULT_RATE_LIMIT", "60 per minute")
+ANALYZE_RATE_LIMIT = os.getenv("ANALYZE_RATE_LIMIT", "20 per minute")
+API_KEY = os.getenv("API_KEY", "").strip()
+
+limiter = Limiter(
+    key_func=get_remote_address,
+    default_limits=[DEFAULT_RATE_LIMIT],
+    storage_uri="memory://",
+)
+limiter.init_app(app)
 
 UPLOAD_FOLDER = "uploads"
 OUTPUT_FOLDER = "outputs"
@@ -43,6 +55,17 @@ except FileNotFoundError:
     )
 except Exception as e:
     logger.error("Failed to load model from '%s': %s", MODEL_PATH, e, exc_info=True)
+
+
+def _is_request_authorized(req):
+    """
+    Enforce API key auth when API_KEY is configured.
+    If API_KEY is empty, authentication is disabled for local development.
+    """
+    if not API_KEY:
+        return True
+    incoming = req.headers.get("X-API-Key", "").strip()
+    return incoming == API_KEY
 
 
 @app.errorhandler(Exception)
@@ -72,8 +95,17 @@ def handle_unexpected_error(error):
     )
 
 
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({"status": "ok"}), 200
+
+
 @app.route("/analyze", methods=["POST"])
+@limiter.limit(ANALYZE_RATE_LIMIT)
 def analyze():
+
+    if not _is_request_authorized(request):
+        return jsonify({"error": "Unauthorized", "message": "Missing or invalid API key."}), 401
 
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
@@ -102,9 +134,7 @@ def analyze():
         # Create a pseudo-heatmap from a lightly blurred grayscale image.
         gray = cv2.cvtColor(original, cv2.COLOR_RGB2GRAY)
         gray_blur = cv2.GaussianBlur(gray, (15, 15), 0)
-        norm_heatmap = cv2.normalize(
-            gray_blur.astype(np.float32), None, 0.0, 1.0, cv2.NORM_MINMAX
-        )
+        norm_heatmap = cv2.normalize(gray_blur.astype(np.float32), None, 0.0, 1.0, cv2.NORM_MINMAX)
 
         result = overlay_heatmap(norm_heatmap, original)
 
@@ -153,7 +183,6 @@ def analyze():
     finished_at = time.perf_counter_ns()
     inference_time_ms = int((finished_at - started_at) / 1_000_000)
 
-
     explanation = generate_explanation(
         user_question="Why is this image classified this way?",
         label=label,
@@ -174,7 +203,6 @@ def analyze():
             "explanation": explanation,
         }
     )
-
 
 
 @app.route("/outputs/<filename>")
